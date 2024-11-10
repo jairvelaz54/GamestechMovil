@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:gamestech/firebase/email_auth.dart';
 
 class RegisterScreen extends StatelessWidget {
+  final EmailAuth emailAuth = EmailAuth();
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -15,6 +17,8 @@ class RegisterScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Image.asset('assets/logo.png', height: 120),
+              SizedBox(height: 30),
               Text(
                 "Hello! Comienza Registrandote",
                 textAlign: TextAlign.center,
@@ -27,10 +31,13 @@ class RegisterScreen extends StatelessWidget {
                 decoration: InputDecoration(
                   hintText: "First Name",
                   border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.black)),
+                  focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.blue),
                   ),
-                  filled: true,
-                  fillColor: Colors.grey[200],
+                  filled: false,
                 ),
               ),
               SizedBox(height: 15),
@@ -40,10 +47,13 @@ class RegisterScreen extends StatelessWidget {
                 decoration: InputDecoration(
                   hintText: "Last Name",
                   border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.black)),
+                  focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.blue),
                   ),
-                  filled: true,
-                  fillColor: Colors.grey[200],
+                  filled: false,
                 ),
               ),
               SizedBox(height: 15),
@@ -53,10 +63,13 @@ class RegisterScreen extends StatelessWidget {
                 decoration: InputDecoration(
                   hintText: "Email",
                   border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.black)),
+                  focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.blue),
                   ),
-                  filled: true,
-                  fillColor: Colors.grey[200],
+                  filled: false,
                 ),
               ),
               SizedBox(height: 15),
@@ -68,20 +81,44 @@ class RegisterScreen extends StatelessWidget {
                   hintText: "Password",
                   suffixIcon: Icon(Icons.visibility),
                   border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.black)),
+                  focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.blue),
                   ),
-                  filled: true,
-                  fillColor: Colors.grey[200],
+                  filled: false,
                 ),
               ),
               SizedBox(height: 20),
               // Botón de registro
               ElevatedButton(
-                onPressed: () {
-                  // Lógica de registro
+                onPressed: () async {
+                  String firstName = firstNameController.text.trim();
+                  String lastName = lastNameController.text.trim();
+                  String email = emailController.text.trim();
+                  String password = passwordController.text.trim();
+
+                  // Llama a la función para crear el usuario
+                  bool result = await emailAuth.createUser(
+                      firstName, lastName, email, password);
+
+                  if (result) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content:
+                              Text('Registro existoso, verificar su correo')),
+                    );
+                    Navigator.pop(context); // Regresar a la pantalla de login
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Fallo el registro')),
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue, // Cambiar el color de fondo si lo deseas
+                  backgroundColor:
+                      Colors.blue, // Cambiar el color de fondo si lo deseas
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -89,44 +126,9 @@ class RegisterScreen extends StatelessWidget {
                 ),
                 child: Text(
                   "Registrar",
-                  style: TextStyle(color: Colors.white), // Texto en color blanco
+                  style:
+                      TextStyle(color: Colors.white), // Texto en color blanco
                 ),
-              ),
-              SizedBox(height: 20),
-              // Texto y botones de inicio de sesión social
-                  Text("No tienes cuenta?", style: TextStyle(color: Colors.grey)),
-              SizedBox(height: 15),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.facebook, color: Colors.blue),
-                    onPressed: () {
-                      // Lógica de inicio de sesión con Facebook
-                    },
-                  ),
-                  SizedBox(width: 20),
-                  IconButton(
-                    icon: Icon(Icons.g_mobiledata, color: Colors.red),
-                    onPressed: () {
-                      // Lógica de inicio de sesión con Google
-                    },
-                  ),
-                ],
-              ),
-              SizedBox(height: 20),
-              // Texto de inicio de sesión
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("No tienes cuenta?", style: TextStyle(color: Colors.grey)),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context); // Regresar a la pantalla de login
-                    },
-                    child: Text("Registrate", style: TextStyle(color: Colors.blue)),
-                  ),
-                ],
               ),
             ],
           ),
