@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "137195160508",
+    "project_id": "gamestech-c3c62",
+    "storage_bucket": "gamestech-c3c62.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:137195160508:android:d275c4f4c0778a8d4b61b9",
+        "android_client_info": {
+          "package_name": "com.e"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKab5c5Q9RMOCZ4wdgS3TYsBZK0MEhhMU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:137195160508:android:7d7bb0ca703e174e4b61b9",
+        "android_client_info": {
+          "package_name": "com.example.gamestech"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKab5c5Q9RMOCZ4wdgS3TYsBZK0MEhhMU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
