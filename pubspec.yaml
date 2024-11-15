@@ -38,6 +38,8 @@ dependencies:
   firebase_auth: ^5.3.1
   cloud_firestore: ^5.4.4
   firebase_core: ^3.7.0
+  salomon_bottom_bar: ^3.3.2
+  google_sign_in: ^6.2.2
 
 
 dev_dependencies:

@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:gamestech/firebase_options.dart';
+import 'package:gamestech/screens/home_screen.dart';
 import 'package:gamestech/screens/login_screen.dart';
 import 'package:gamestech/screens/register_screen.dart';
 
@@ -22,6 +23,7 @@ class MyApp extends StatelessWidget {
       routes: {
         "/login": (context) => LoginScreen(),
         "/register": (context) => RegisterScreen(),
+        "/home": (context) => HomeScreen(),
       },
     );
   }

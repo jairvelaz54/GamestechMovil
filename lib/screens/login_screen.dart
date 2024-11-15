@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gamestech/firebase/email_auth.dart';
+import 'package:gamestech/google/githubAuth.dart';
+import 'package:gamestech/google/google_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -12,6 +14,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
 
   final TextEditingController passwordController = TextEditingController();
+  final GitHubAuth githubAuth = GitHubAuth();
+  final GoogleAuth googleAuth = GoogleAuth();
 
   bool _obscureText = true;
   // Variable para controlar la visibilidad de la contraseña
@@ -128,6 +132,55 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                     child: Text("Registrate",
                         style: TextStyle(color: Colors.blue)),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("O Inicia sesion con: "),
+                  IconButton(
+                    icon: Icon(Icons.g_mobiledata, color: Colors.red),
+                    onPressed: () async {
+                      // Llamada para el inicio de sesión con Google
+                      final user = await googleAuth.signInWithGoogle();
+                      if (user != null) {
+                        // Navegar a la pantalla principal o dashboard
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Todo correcto aqui envia')),
+                        );
+                      } else {
+                        // Mostrar un mensaje de error si falla el inicio de sesión
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text('Failed to sign in with Google')),
+                        );
+                      }
+                    },
+                  ),
+                  IconButton(
+                    onPressed: () async {
+                      final user = await githubAuth.signInWithGitHub();
+
+                      // Aquí puedes implementar la autenticación con GitHub
+                      if (user != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content:
+                                  Text('Inicio de sesión con GitHub exitoso')),
+                        );
+                        Navigator.pop(
+                            context); // Regresar a la pantalla principal o dashboard
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content:
+                                  Text('Falló el inicio de sesión con GitHub')),
+                        );
+                      }
+                    },
+                    icon: Icon(Icons.code, size: 32, color: Colors.black),
                   ),
                 ],
               ),
