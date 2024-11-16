@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:gamestech/models/category_chip.dart';
+import 'package:gamestech/models/product.dart';
 import 'package:gamestech/models/product_card.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 
@@ -10,21 +12,42 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-int _selectedIndex = 0;
-
-final List<String> _screens = ["Store", "Search", "Cart", "Favorites"];
-
 class _HomeScreenState extends State<HomeScreen> {
+  int _selectedIndex = 0;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  
+  // Función para obtener los productos
+  Stream<List<Product>> getProducts() {
+    return _firestore.collection('products').snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return Product.fromFirestore(doc); // Asegúrate de que tu clase Product tiene el método fromFirestore
+      }).toList();
+    });
+  }
+
+  // Función para manejar el producto favorito
+  void onFavoritePressed(Product product) {
+    // Lógica para agregar el producto a favoritos (guardar en Firebase)
+    print('Producto agregado a favoritos: ${product.modelo}');
+  }
+
+  // Función para manejar la compra
+  void onBuyPressed(Product product) {
+    // Lógica para manejar la compra (ej. redirigir a una pantalla de pago)
+    print('Comprando: ${product.modelo}');
+  }
+
   // Método para cerrar sesión
   void _signOut(BuildContext context) {
-    // Aquí puedes agregar el código de cierre de sesión
     Navigator.of(context).pushReplacementNamed('/login');
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -37,14 +60,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: const Icon(Icons.menu),
                     onPressed: () {},
                   ),
-                  const Text(
+                  Text(
                     'Nuestros productos',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   GestureDetector(
                     onTap: () => _signOut(context),
-                    child: const Icon(Icons.exit_to_app,
-                        size: 28, color: Colors.blue),
+                    child: Icon(Icons.exit_to_app, size: 28, color: theme.primaryColor),
                   ),
                 ],
               ),
@@ -55,24 +77,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Nuestos',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    Text(
+                      'Nuestros',
+                      style: theme.textTheme.titleLarge,
                     ),
-                    const Text(
+                    Text(
                       'Productos',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 20),
+                    // Búsqueda de productos
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        color: theme.cardColor,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: TextField(
@@ -82,18 +99,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           suffixIcon: Container(
                             margin: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: theme.scaffoldBackgroundColor,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(Icons.tune),
                           ),
                           border: InputBorder.none,
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 16),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                         ),
                       ),
                     ),
                     const SizedBox(height: 20),
+                    // Categorías
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
@@ -107,32 +124,45 @@ class _HomeScreenState extends State<HomeScreen> {
                             icon: Icons.watch,
                             label: 'Smartwatch',
                           ),
+                          // Aquí puedes agregar más categorías dinámicamente si lo deseas
                         ],
                       ),
                     ),
                     const SizedBox(height: 20),
+                    // StreamBuilder para cargar productos de Firebase
                     Expanded(
-                      child: GridView.count(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.8,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        children: [
-                          ProductCard(
-                            image:
-                                'https://elektra.vtexassets.com/arquivos/ids/4203373-800-auto?v=638593503263330000&width=800&height=auto&aspect=true',
-                            name: 'iPhone 13',
-                            price: 999.00,
-                            label: 'Trending Now',
-                          ),
-                          ProductCard(
-                            image:
-                                'https://i5.walmartimages.com/asr/dd071839-1958-41e4-b734-5b801185d0e8.b5f2035787c0efded7f90d9c640f5015.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF',
-                            name: 'Apple Watch',
-                            price: 399.00,
-                            label: 'Best Selling',
-                          ),
-                        ],
+                      child: StreamBuilder<List<Product>>(
+                        stream: getProducts(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return const Center(child: Text("No hay productos disponibles."));
+                          }
+                          final products = snapshot.data!;
+                          return GridView.builder(
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio: 0.8,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                            ),
+                            itemCount: products.length,
+                            itemBuilder: (context, index) {
+                              final product = products[index];
+                              return ProductCard(
+                                image: product.image,
+                                modelo: product.modelo,
+                                marca: product.marca,
+                                precio: product.precio,
+                                status: product.status,
+                                onFavoritePressed: () => onFavoritePressed(product),
+                                onBuyPressed: () => onBuyPressed(product),
+                              );
+                            },
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -142,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-    bottomNavigationBar: SalomonBottomBar(
+      bottomNavigationBar: SalomonBottomBar(
         currentIndex: _selectedIndex,
         onTap: (index) {
           setState(() {
@@ -150,29 +180,25 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         },
         items: [
-          // Store
           SalomonBottomBarItem(
-            icon: Icon(Icons.store),
-            title: Text("Store"),
-            selectedColor: Colors.blue,
+            icon: const Icon(Icons.store),
+            title: const Text("Store"),
+            selectedColor: theme.primaryColor,
           ),
-          // Search
           SalomonBottomBarItem(
-            icon: Icon(Icons.search),
-            title: Text("Search"),
-            selectedColor: Colors.blue,
+            icon: const Icon(Icons.search),
+            title: const Text("Search"),
+            selectedColor: theme.primaryColor,
           ),
-          // Cart
           SalomonBottomBarItem(
-            icon: Icon(Icons.shopping_cart),
-            title: Text("Cart"),
-            selectedColor: Colors.blue,
+            icon: const Icon(Icons.shopping_cart),
+            title: const Text("Cart"),
+            selectedColor: theme.primaryColor,
           ),
-          // Favorites
           SalomonBottomBarItem(
-            icon: Icon(Icons.favorite_border),
-            title: Text("Favorites"),
-            selectedColor: Colors.blue,
+            icon: const Icon(Icons.favorite_border),
+            title: const Text("Favorites"),
+            selectedColor: theme.primaryColor,
           ),
         ],
       ),

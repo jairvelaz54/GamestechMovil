@@ -38,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 120), // Logo en la parte superior
               SizedBox(height: 30),
               Text(
-                "Bienvenido a GAMESTECH de nuevo!",
+                "Bienvenido a GAMESTECH!",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
@@ -94,10 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       await emailAuth.validateUser(email, password);
 
                   if (isLoggedIn) {
-                    //Navigator.pushReplacementNamed(context, '/dashboard');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Todo correcto aqui envia')),
-                    );
+                    Navigator.pushReplacementNamed(context, '/home');
                   } else {
                     // Mostrar un mensaje de error si el inicio de sesión falla
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -139,6 +136,21 @@ class _LoginScreenState extends State<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/resetPassword');
+                    },
+                    child: Text(
+                      '¿Olvidaste tu contraseña?',
+                      style: TextStyle(color: Colors.blue),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
                   Text("O Inicia sesion con: "),
                   IconButton(
                     icon: Icon(Icons.g_mobiledata, color: Colors.red),
@@ -147,9 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       final user = await googleAuth.signInWithGoogle();
                       if (user != null) {
                         // Navegar a la pantalla principal o dashboard
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Todo correcto aqui envia')),
-                        );
+                        Navigator.pushReplacementNamed(context, '/home');
                       } else {
                         // Mostrar un mensaje de error si falla el inicio de sesión
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -165,11 +175,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       // Aquí puedes implementar la autenticación con GitHub
                       if (user != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content:
-                                  Text('Inicio de sesión con GitHub exitoso')),
-                        );
+                        Navigator.pushReplacementNamed(context, '/home');
+
                         Navigator.pop(
                             context); // Regresar a la pantalla principal o dashboard
                       } else {
