@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gamestech/models/category_chip.dart';
 import 'package:gamestech/models/product.dart';
@@ -15,13 +16,60 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
-  // Función para obtener los productos
-  Stream<List<Product>> getProducts() {
-    return _firestore.collection('products').snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return Product.fromFirestore(doc); // Asegúrate de que tu clase Product tiene el método fromFirestore
-      }).toList();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  User? _currentUser;
+  int _selectedBottomNavIndex = 0; // Índice para SalomonBottomBar
+
+  @override
+  void initState() {
+    super.initState();
+    _currentUser = _auth.currentUser; // Obtiene el usuario actual
+  }
+
+  String _selectedFilter = 'Todos'; // 'Todos', 'smartphone', 'smartwatch'
+
+  // Función para obtener los productos con un filtro
+  Stream<List<Product>> getProducts({String filter = 'Todos'}) {
+    final collection = _firestore.collection('iphone');
+    if (filter == 'Todos') {
+      return collection.snapshots().map((snapshot) {
+        return snapshot.docs.map((doc) => Product.fromFirestore(doc)).toList();
+      });
+    } else {
+      return collection
+          .where('stats.tipo', isEqualTo: filter)
+          .snapshots()
+          .map((snapshot) {
+        return snapshot.docs.map((doc) => Product.fromFirestore(doc)).toList();
+      });
+    }
+  }
+
+  String _searchText = ''; // Almacena el texto del buscador.
+
+  // Método para obtener los productos con filtro y búsqueda.
+  Stream<List<Product>> setProductsFilter(String tipo) {
+    Query query = _firestore.collection('iphone');
+
+    if (tipo != "all") {
+      query = query.where('stats.tipo', isEqualTo: tipo);
+    }
+    if (_searchText.isNotEmpty) {
+      query = query
+          .where('modelo', isGreaterThanOrEqualTo: _searchText)
+          .where('modelo', isLessThanOrEqualTo: '$_searchText\uf8ff');
+    }
+
+    return query.snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => Product.fromFirestore(doc)).toList();
+    });
+  }
+
+  // Función para manejar el cambio de filtro
+  void _updateFilter(String filter, int index) {
+    setState(() {
+      _selectedFilter = filter;
+      _selectedBottomNavIndex = index; // Resetea el índice de SalomonBottomBar
     });
   }
 
@@ -48,6 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
+      drawer: myDrawer(),
       body: SafeArea(
         child: Column(
           children: [
@@ -56,17 +105,24 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: () {},
+                  Builder(
+                    builder: (context) => IconButton(
+                      icon: const Icon(Icons.menu),
+                      onPressed: () => Scaffold.of(context).openDrawer(),
+                    ),
                   ),
                   Text(
                     'Nuestros productos',
-                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleLarge
+                        ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   GestureDetector(
-                    onTap: () => _signOut(context),
-                    child: Icon(Icons.exit_to_app, size: 28, color: theme.primaryColor),
+                    child: CircleAvatar(
+                      backgroundImage: _currentUser?.photoURL != null
+                          ? NetworkImage(_currentUser!.photoURL!)
+                          : const AssetImage('assets/default_user.png')
+                              as ImageProvider,
+                    ),
                   ),
                 ],
               ),
@@ -83,7 +139,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     Text(
                       'Productos',
-                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.titleLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 20),
                     // Búsqueda de productos
@@ -93,19 +150,25 @@ class _HomeScreenState extends State<HomeScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: TextField(
+                        onChanged: (value) {
+                          setState(() {
+                            _searchText = value
+                                .trim(); // Actualiza el texto del buscador.
+                          });
+                        },
                         decoration: InputDecoration(
                           hintText: 'Buscar Productos',
-                          prefixIcon: const Icon(Icons.search),
                           suffixIcon: Container(
                             margin: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color: theme.scaffoldBackgroundColor,
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(Icons.tune),
+                            child: const Icon(Icons.search),
                           ),
                           border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
                         ),
                       ),
                     ),
@@ -116,15 +179,38 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Row(
                         children: [
                           CategoryChip(
+                            icon: Icons.all_inclusive,
+                            label: 'Todos',
+                            isSelected: _selectedIndex == 0,
+                            onTap: () {
+                              setState(() {
+                                _selectedIndex = 0;
+                              });
+                              setProductsFilter("all");
+                            },
+                          ),
+                          CategoryChip(
                             icon: Icons.phone_iphone,
                             label: 'iPhones',
-                            isSelected: true,
+                            isSelected: _selectedIndex == 1,
+                            onTap: () {
+                              setState(() {
+                                _selectedIndex = 1;
+                                setProductsFilter("smartphone");
+                              });
+                            },
                           ),
                           CategoryChip(
                             icon: Icons.watch,
                             label: 'Smartwatch',
+                            isSelected: _selectedIndex == 2,
+                            onTap: () {
+                              setState(() {
+                                _selectedIndex = 2;
+                              });
+                              setProductsFilter("smartwatch");
+                            },
                           ),
-                          // Aquí puedes agregar más categorías dinámicamente si lo deseas
                         ],
                       ),
                     ),
@@ -132,21 +218,32 @@ class _HomeScreenState extends State<HomeScreen> {
                     // StreamBuilder para cargar productos de Firebase
                     Expanded(
                       child: StreamBuilder<List<Product>>(
-                        stream: getProducts(),
+                        stream: setProductsFilter(
+                          _selectedIndex == 0
+                              ? "all"
+                              : _selectedIndex == 1
+                                  ? "smartphone"
+                                  : "smartwatch",
+                        ),
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const Center(child: CircularProgressIndicator());
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
                           }
                           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                            return const Center(child: Text("No hay productos disponibles."));
+                            return const Center(
+                                child: Text("No hay productos disponibles."));
                           }
                           final products = snapshot.data!;
                           return GridView.builder(
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
-                              childAspectRatio: 0.8,
                               crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
+                              mainAxisSpacing: 20,
+                              childAspectRatio: 0.7,
                             ),
                             itemCount: products.length,
                             itemBuilder: (context, index) {
@@ -157,7 +254,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 marca: product.marca,
                                 precio: product.precio,
                                 status: product.status,
-                                onFavoritePressed: () => onFavoritePressed(product),
+                                onFavoritePressed: () =>
+                                    onFavoritePressed(product),
                                 onBuyPressed: () => onBuyPressed(product),
                               );
                             },
@@ -173,21 +271,22 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       bottomNavigationBar: SalomonBottomBar(
-        currentIndex: _selectedIndex,
+        currentIndex: _selectedBottomNavIndex,
         onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
+          if (index == 1) {
+            Navigator.pushNamed(context, '/cart');
+          } else if (index == 2) {
+            Navigator.pushNamed(context, '/favorites');
+          } else {
+            setState(() {
+             _selectedBottomNavIndex = index;
+            });
+          }
         },
         items: [
           SalomonBottomBarItem(
             icon: const Icon(Icons.store),
             title: const Text("Store"),
-            selectedColor: theme.primaryColor,
-          ),
-          SalomonBottomBarItem(
-            icon: const Icon(Icons.search),
-            title: const Text("Search"),
             selectedColor: theme.primaryColor,
           ),
           SalomonBottomBarItem(
@@ -199,6 +298,48 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.favorite_border),
             title: const Text("Favorites"),
             selectedColor: theme.primaryColor,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget myDrawer() {
+    return Drawer(
+      child: ListView(
+        children: [
+          UserAccountsDrawerHeader(
+            currentAccountPicture: CircleAvatar(
+              backgroundImage: _currentUser?.photoURL != null
+                  ? NetworkImage(_currentUser!.photoURL!)
+                  : const AssetImage('assets/default_user.png')
+                      as ImageProvider,
+            ),
+            accountName: Text(_currentUser?.displayName ?? 'Usuario'),
+            accountEmail: Text(_currentUser?.email ?? 'Correo no disponible'),
+            decoration: BoxDecoration(
+              color: Colors.blue, // Cambiar el fondo del header a azul
+            ),
+          ),
+          ListTile(
+            onTap: () => Navigator.pushNamed(context, '/db'),
+            title: const Text('Configuracion del perfil'),
+            leading: const Icon(Icons.settings),
+          ),
+          ListTile(
+            title: const Text('Configuración de Tema'),
+            leading: const Icon(Icons.color_lens),
+            onTap: () {
+              Navigator.pushNamed(context, '/theme');
+            },
+          ),
+          ListTile(
+            onTap: () async {
+              await FirebaseAuth.instance.signOut();
+              Navigator.of(context).pushReplacementNamed('/login');
+            },
+            title: const Text('Salir'),
+            leading: const Icon(Icons.exit_to_app),
           ),
         ],
       ),

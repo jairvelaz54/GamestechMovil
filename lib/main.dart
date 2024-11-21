@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:gamestech/screens/cart_screen.dart';
+import 'package:gamestech/screens/favorite_sreen.dart';
 import 'package:gamestech/screens/reset_password_screen.dart';
 import 'package:gamestech/settings/global_values.dart';
 import 'package:gamestech/settings/theme_preferences.dart';
@@ -57,6 +59,8 @@ class MyApp extends StatelessWidget {
                 "/register": (context) => RegisterScreen(),
                 "/home": (context) => HomeScreen(),
                 "/resetPassword": (context) => ResetPasswordScreen(),
+                 "/cart": (context) => const CartScreen(),
+                 "/favorites" : (context) => const FavoritesScreen(),
               },
             );
           },

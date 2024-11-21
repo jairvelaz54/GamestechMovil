@@ -5,9 +5,9 @@ class ProductCard extends StatelessWidget {
   final String modelo;
   final String marca;
   final double precio;
-  final String status; // Usamos el estado del producto para mostrar disponibilidad o algo similar.
-  final Function onFavoritePressed; // Acción cuando se presiona el corazón para agregar a favoritos
-  final Function onBuyPressed; // Acción cuando se presiona el botón de compra
+  final String status;
+  final Function onFavoritePressed;
+  final Function onBuyPressed;
 
   const ProductCard({
     Key? key,
@@ -25,13 +25,13 @@ class ProductCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
+            color: Colors.grey.withOpacity(0.15),
+            spreadRadius: 2,
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
@@ -40,78 +40,92 @@ class ProductCard extends StatelessWidget {
         children: [
           Stack(
             children: [
-              // Imagen del producto
               Container(
-                height: 120,
+                height: 150,
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16),
-                  ),
-                ),
-                child: Center(
-                  child: Image.network(
-                    image,
-                    height: 100,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  image: DecorationImage(
+                    image: NetworkImage(image),
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
-              // Corazón para agregar a favoritos
               Positioned(
-                right: 8,
-                top: 8,
-                child: IconButton(
-                  icon: const Icon(Icons.favorite_border, color: Colors.red),
-                  onPressed: () => onFavoritePressed(), // Acción de agregar a favoritos
+                right: 12,
+                top: 12,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.8),
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.favorite_border, color: Colors.red),
+                    onPressed: () => onFavoritePressed(),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 12,
+                top: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.7),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    status,
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                  ),
                 ),
               ),
             ],
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Modelo y marca
-                Text(
-                  '$modelo - $marca',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                // Estado del producto (Disponible, fuera de stock, etc.)
-                Text(
-                  status,
-                  style: TextStyle(
-                    color: Colors.green[800],
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // Precio
-                Text(
-                  '\$$precio',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // Botón de compra
-                ElevatedButton(
-                  onPressed: () => onBuyPressed(), // Acción de compra
-                  child: const Text('Comprar'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    backgroundColor: Colors.orange, // Color de fondo
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8), // Bordes redondeados
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    marca,
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  Text(
+                    modelo,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.black87,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const Spacer(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        '\$${precio.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.indigo,
+                        ),
+                      ),
+                     
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],

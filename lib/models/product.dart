@@ -59,8 +59,8 @@ class Product {
   String get serialNumber => settingIphone['serialNumber'] ?? 'Desconocido';
 
   // Métodos de acceso para obtener los campos dentro de stats
-  double get descuento => stats['descuento'] ?? 0.0;
-  double get precio => stats['precio'] ?? 0.0;
+  double get descuento => (stats['descuento'] is int ? (stats['descuento'] as int).toDouble() : stats['descuento']) ?? 0.0;
+  double get precio => (stats['precio'] is int ? (stats['precio'] as int).toDouble() : stats['precio']) ?? 0.0;
   String get status => stats['status'] ?? 'Desconocido';
   String get tipo => stats['tipo'] ?? 'Desconocido';
 }
