@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Product {
+  final String id;
   final String capacidad;
   final String color;
   final Timestamp createAt; // Firestore Timestamp
@@ -11,6 +12,7 @@ class Product {
   final Map<String, dynamic> stats; // Mapa para estadísticas, que contiene descuento, precio, status, tipo
 
   Product({
+    required this.id,
     required this.capacidad,
     required this.color,
     required this.createAt,
@@ -25,6 +27,7 @@ class Product {
   factory Product.fromFirestore(DocumentSnapshot doc) {
     var data = doc.data() as Map<String, dynamic>;
     return Product(
+      id:doc.id,
       capacidad: data['capacidad'],
       color: data['color'],
       createAt: data['createAt'],

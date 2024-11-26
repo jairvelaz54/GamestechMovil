@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+//import 'package:gamestech/firebase/firebase_notifications.dart';
 import 'package:gamestech/screens/cart_screen.dart';
 import 'package:gamestech/screens/favorite_sreen.dart';
 import 'package:gamestech/screens/reset_password_screen.dart';
@@ -18,6 +19,7 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   int savedTheme = await ThemePreference().getTheme();
   GlobalValues.themeMode.value = savedTheme;
+  //await FirebaseNotifications().initNotifications();
 
   runApp(MyApp());
 }

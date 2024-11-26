@@ -46,7 +46,66 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _searchText = ''; // Almacena el texto del buscador.
+/* favoritos inicio */
+  Stream<List<String>> favoritesStream() {
+    // Asegúrate de que el usuario esté autenticado
+    if (_currentUser != null) {
+      return _firestore
+          .collection('users') // Colección de usuarios
+          .doc(_currentUser!.uid) // Documento del usuario actual
+          .snapshots()
+          .map((snapshot) {
+        if (snapshot.exists) {
+          // Obtiene el campo 'favorites' como una lista de IDs de productos
+          List<dynamic> favorites = snapshot.data()?['favorites'] ?? [];
+          return List<String>.from(
+              favorites); // Convierte a una lista de Strings
+        }
+        return []; // Si no existe el campo favorites, devuelve una lista vacía
+      });
+    } else {
+      // Si el usuario no está autenticado, devuelve un stream vacío
+      return Stream.value([]);
+    }
+  }
 
+  void onAddFavorite(String productId) async {
+    if (_currentUser != null) {
+      try {
+        DocumentReference userDoc =
+            _firestore.collection('users').doc(_currentUser!.uid);
+        await userDoc.update({
+          'favorites': FieldValue.arrayUnion(
+              [productId]), // Agrega el productId al array 'favorites'
+        });
+        print('Producto agregado a favoritos');
+      } catch (e) {
+        print('Error al agregar favorito: $e');
+      }
+    } else {
+      print('Usuario no autenticado');
+    }
+  }
+
+  void onRemoveFavorite(String productId) async {
+    if (_currentUser != null) {
+      try {
+        DocumentReference userDoc =
+            _firestore.collection('users').doc(_currentUser!.uid);
+        await userDoc.update({
+          'favorites': FieldValue.arrayRemove(
+              [productId]), // Elimina el productId del array 'favorites'
+        });
+        print('Producto eliminado de favoritos');
+      } catch (e) {
+        print('Error al eliminar favorito: $e');
+      }
+    } else {
+      print('Usuario no autenticado');
+    }
+  }
+
+/*fin */
   // Método para obtener los productos con filtro y búsqueda.
   Stream<List<Product>> setProductsFilter(String tipo) {
     Query query = _firestore.collection('iphone');
@@ -254,9 +313,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                 marca: product.marca,
                                 precio: product.precio,
                                 status: product.status,
-                                onFavoritePressed: () =>
-                                    onFavoritePressed(product),
-                                onBuyPressed: () => onBuyPressed(product),
+                                productId: product
+                                    .id, // Asegúrate de tener el productId en tu modelo
+                                favoritesStream:
+                                    favoritesStream(), // Este es tu stream de favoritos
+                                onAddFavorite: (productId) =>
+                                    onAddFavorite(productId),
+                                onRemoveFavorite: (productId) =>
+                                    onRemoveFavorite(productId),
                               );
                             },
                           );
@@ -279,7 +343,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Navigator.pushNamed(context, '/favorites');
           } else {
             setState(() {
-             _selectedBottomNavIndex = index;
+              _selectedBottomNavIndex = index;
             });
           }
         },
