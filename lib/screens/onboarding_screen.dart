@@ -99,12 +99,12 @@ class OnboardingScreen extends StatelessWidget {
           onDone: () async {
             final prefs = await SharedPreferences.getInstance();
             await prefs.setBool('onboardingSeen', true);
-            Navigator.of(context).pushReplacementNamed('/home');
+            Navigator.of(context).pushReplacementNamed('/login');
           },
           onSkip: () async {
             final prefs = await SharedPreferences.getInstance();
             await prefs.setBool('onboardingSeen', true);
-            Navigator.of(context).pushReplacementNamed('/home');
+            Navigator.of(context).pushReplacementNamed('/login');
           },
           showSkipButton: true,
           skip: const Text("Saltar"),
