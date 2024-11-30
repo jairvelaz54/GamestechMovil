@@ -19,11 +19,26 @@ class _HomeScreenState extends State<HomeScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User? _currentUser;
   int _selectedBottomNavIndex = 0; // Índice para SalomonBottomBar
+  int _cartItemCount = 0;
 
   @override
   void initState() {
     super.initState();
     _currentUser = _auth.currentUser; // Obtiene el usuario actual
+    _fetchCartItemCount();
+  }
+
+  void _fetchCartItemCount() {
+    _firestore
+        .collection('users')
+        .doc(_currentUser?.uid)
+        .collection('cart')
+        .snapshots()
+        .listen((snapshot) {
+      setState(() {
+        _cartItemCount = snapshot.docs.length;
+      });
+    });
   }
 
   String _selectedFilter = 'Todos'; // 'Todos', 'smartphone', 'smartwatch'
@@ -170,18 +185,34 @@ class _HomeScreenState extends State<HomeScreen> {
                       onPressed: () => Scaffold.of(context).openDrawer(),
                     ),
                   ),
-                  Text(
-                    'Nuestros productos',
-                    style: theme.textTheme.titleLarge
-                        ?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  GestureDetector(
-                    child: CircleAvatar(
-                      backgroundImage: _currentUser?.photoURL != null
-                          ? NetworkImage(_currentUser!.photoURL!)
-                          : const AssetImage('assets/default_user.png')
-                              as ImageProvider,
-                    ),
+                  Stack(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.shopping_cart),
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/cart');
+                        },
+                      ),
+                      if (_cartItemCount > 0)
+                        Positioned(
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              '$_cartItemCount',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ],
               ),

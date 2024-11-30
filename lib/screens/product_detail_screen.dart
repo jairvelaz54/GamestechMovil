@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gamestech/components/SlideToBuyButton.dart';
 
 class ProductDetail extends StatelessWidget {
@@ -18,6 +20,38 @@ class ProductDetail extends StatelessWidget {
     required this.status,
     required this.productId,
   }) : super(key: key);
+
+  Future<void> _addToCart(BuildContext context) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final cartRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUser?.uid)
+        .collection('cart');
+
+    // Verifica si el producto ya existe en el carrito
+    final existingProduct = await cartRef.doc(productId).get();
+
+    if (existingProduct.exists) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Este producto ya está en el carrito.")),
+      );
+      return;
+    }
+
+    // Agrega el producto al carrito
+    await cartRef.doc(productId).set({
+      'image': image,
+      'modelo': modelo,
+      'marca': marca,
+      'precio': precio,
+      'status': status,
+      'quantity': 1,
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Producto agregado al carrito.")),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +90,11 @@ class ProductDetail extends StatelessWidget {
                   icon: const Icon(Icons.favorite_border),
                   color: Colors.white,
                   onPressed: () {
-                    // Acción para favoritos
+                    // Acción para agregar a favoritos
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text("Producto agregado a favoritos.")),
+                    );
                   },
                 ),
               ),
@@ -149,26 +187,25 @@ class ProductDetail extends StatelessWidget {
                   // Precio y botón deslizable
                   Column(
                     children: [
-                      Text(
-                        '\$${precio.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
                       const SizedBox(height: 16),
-                      SlideToBuyButton(
-                        price: precio,
-                        onBuy: () {
-                          // Lógica para comprar
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Purchase confirmed!"),
+                      Column(
+                        children: [
+                          Text(
+                            '\$${precio.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
                             ),
-                          );
-                        },
+                          ),
+                          const SizedBox(height: 16),
+                          SlideToBuyButton(
+                            price: precio,
+                            onBuy: () => _addToCart(context),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 24),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -181,4 +218,3 @@ class ProductDetail extends StatelessWidget {
     );
   }
 }
-
