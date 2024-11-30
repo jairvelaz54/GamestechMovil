@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gamestech/screens/profile_settings_screen.dart';
 import 'package:gamestech/settings/theme_setting.dart';
 import 'package:provider/provider.dart';
 import 'package:gamestech/settings/theme_provider.dart';
@@ -83,6 +84,8 @@ class MyApp extends StatelessWidget {
                 "/cart": (context) => const CartScreen(),
                 "/favorites": (context) => const FavoritesScreen(),
                 "/theme": (context) => const ThemeSettingsScreen(),
+                "/profile": (context) => const ProfileSettingsScreen(),
+
               },
             );
           },

@@ -400,44 +400,63 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget myDrawer() {
-    return Drawer(
-      child: ListView(
-        children: [
-          UserAccountsDrawerHeader(
-            currentAccountPicture: CircleAvatar(
-              backgroundImage: _currentUser?.photoURL != null
-                  ? NetworkImage(_currentUser!.photoURL!)
-                  : const AssetImage('assets/default_user.png')
-                      as ImageProvider,
-            ),
-            accountName: Text(_currentUser?.displayName ?? 'Usuario'),
-            accountEmail: Text(_currentUser?.email ?? 'Correo no disponible'),
-            decoration: BoxDecoration(
-              color: Colors.blue, // Cambiar el fondo del header a azul
-            ),
+    return StreamBuilder<DocumentSnapshot>(
+      stream: _firestore.collection('users').doc(_currentUser?.uid).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (!snapshot.hasData || snapshot.data?.data() == null) {
+          return const Center(
+              child: Text('Error al cargar los datos del usuario'));
+        }
+
+        final userData = snapshot.data?.data() as Map<String, dynamic>;
+        final userName = userData['name'] ?? 'Usuario';
+        final userPhoto = userData['photoUrl'];
+
+        return Drawer(
+          child: ListView(
+            children: [
+              UserAccountsDrawerHeader(
+                currentAccountPicture: CircleAvatar(
+                  backgroundImage: userPhoto != null
+                      ? NetworkImage(userPhoto)
+                      : const AssetImage('assets/default_user.png')
+                          as ImageProvider,
+                ),
+                accountName: Text(userName),
+                accountEmail:
+                    Text(_currentUser?.email ?? 'Correo no disponible'),
+                decoration: const BoxDecoration(
+                  color: Colors.blue, // Cambiar el fondo del header a azul
+                ),
+              ),
+              ListTile(
+                onTap: () => Navigator.pushNamed(context, '/profile'),
+                title: const Text('Configuración del perfil'),
+                leading: const Icon(Icons.person),
+              ),
+              ListTile(
+                title: const Text('Configuración de Tema'),
+                leading: const Icon(Icons.color_lens),
+                onTap: () {
+                  Navigator.pushNamed(context, '/theme');
+                },
+              ),
+              ListTile(
+                onTap: () async {
+                  await FirebaseAuth.instance.signOut();
+                  Navigator.of(context).pushReplacementNamed('/login');
+                },
+                title: const Text('Salir'),
+                leading: const Icon(Icons.exit_to_app),
+              ),
+            ],
           ),
-          ListTile(
-            onTap: () => Navigator.pushNamed(context, '/profile'),
-            title: const Text('Configuración del perfil'),
-            leading: const Icon(Icons.person),
-          ),
-          ListTile(
-            title: const Text('Configuración de Tema'),
-            leading: const Icon(Icons.color_lens),
-            onTap: () {
-              Navigator.pushNamed(context, '/theme');
-            },
-          ),
-          ListTile(
-            onTap: () async {
-              await FirebaseAuth.instance.signOut();
-              Navigator.of(context).pushReplacementNamed('/login');
-            },
-            title: const Text('Salir'),
-            leading: const Icon(Icons.exit_to_app),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
