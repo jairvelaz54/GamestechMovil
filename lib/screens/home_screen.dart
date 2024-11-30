@@ -386,9 +386,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           ListTile(
-            onTap: () => Navigator.pushNamed(context, '/db'),
-            title: const Text('Configuracion del perfil'),
-            leading: const Icon(Icons.settings),
+            onTap: () => Navigator.pushNamed(context, '/profile'),
+            title: const Text('Configuración del perfil'),
+            leading: const Icon(Icons.person),
           ),
           ListTile(
             title: const Text('Configuración de Tema'),
