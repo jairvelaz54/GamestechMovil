@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:gamestech/settings/theme_provider.dart';
 
@@ -11,12 +12,14 @@ class ThemeSettingsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Configuración de Tema'),
+        title: Text(
+          'Configuración de Tema',
+          style: GoogleFonts.lato(), // Cambia esto por cualquier fuente.
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('Selecciona el tema:'),
             SwitchListTile(
@@ -32,9 +35,10 @@ class ThemeSettingsScreen extends StatelessWidget {
               value: themeProvider.fontFamily,
               items: const [
                 DropdownMenuItem(value: 'Roboto', child: Text('Roboto')),
-                DropdownMenuItem(value: 'OpenSans', child: Text('Open Sans')),
+                DropdownMenuItem(value: 'Open Sans', child: Text('Open Sans')),
                 DropdownMenuItem(value: 'Lato', child: Text('Lato')),
-                DropdownMenuItem(value: 'Montserrat', child: Text('Montserrat')),
+                DropdownMenuItem(
+                    value: 'Montserrat', child: Text('Montserrat')),
               ],
               onChanged: (value) {
                 if (value != null) {

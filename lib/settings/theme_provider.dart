@@ -11,11 +11,27 @@ class ThemeProvider extends ChangeNotifier {
 
   ThemeData get currentTheme {
     final baseTheme = _isDarkMode ? ThemeData.dark() : ThemeData.light();
+    TextTheme textTheme;
+
+    switch (_fontFamily) {
+      case 'Roboto':
+        textTheme = GoogleFonts.robotoTextTheme(baseTheme.textTheme);
+        break;
+      case 'Open Sans':
+        textTheme = GoogleFonts.openSansTextTheme(baseTheme.textTheme);
+        break;
+      case 'Lato':
+        textTheme = GoogleFonts.latoTextTheme(baseTheme.textTheme);
+        break;
+      case 'Montserrat':
+        textTheme = GoogleFonts.montserratTextTheme(baseTheme.textTheme);
+        break;
+      default:
+        textTheme = baseTheme.textTheme;
+    }
+
     return baseTheme.copyWith(
-      textTheme: GoogleFonts.getTextTheme(
-        _fontFamily,
-        baseTheme.textTheme,
-      ),
+      textTheme: textTheme,
     );
   }
 

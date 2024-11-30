@@ -8,6 +8,7 @@ import 'package:gamestech/screens/reset_password_screen.dart';
 import 'package:gamestech/screens/theme_settings_screend.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'firebase_options.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
@@ -54,13 +55,26 @@ class MyApp extends StatelessWidget {
 
         return Consumer<ThemeProvider>(
           builder: (context, themeProvider, _) {
+            // Generar ThemeData dinámicamente con fuentes de Google Fonts
+            final ThemeData themeData = themeProvider.isDarkMode
+                ? ThemeData.dark().copyWith(
+                    textTheme: GoogleFonts.getTextTheme(
+                      themeProvider.fontFamily,
+                      ThemeData.dark().textTheme,
+                    ),
+                  )
+                : ThemeData.light().copyWith(
+                    textTheme: GoogleFonts.getTextTheme(
+                      themeProvider.fontFamily,
+                      ThemeData.light().textTheme,
+                    ),
+                  );
+
             return MaterialApp(
               title: 'Gamestech',
               debugShowCheckedModeBanner: false,
-              theme: themeProvider.isDarkMode
-                  ? ThemeSettings.darkTheme()
-                  : ThemeSettings.lightTheme(),
-              home: onboardingSeen ?  LoginScreen() : OnboardingScreen(),
+              theme: themeData,
+              home: onboardingSeen ? LoginScreen() : OnboardingScreen(),
               routes: {
                 "/login": (context) => LoginScreen(),
                 "/register": (context) => RegisterScreen(),
