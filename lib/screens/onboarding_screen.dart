@@ -1,28 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:gamestech/settings/global_values.dart';
-import 'package:gamestech/settings/theme_setting.dart';
+import 'package:gamestech/settings/theme_provider.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:lottie/lottie.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+
     return Scaffold(
       body: Center(
         child: IntroductionScreen(
           pages: [
             PageViewModel(
               title: "Bienvenido a Gamestech",
-              body: "Esta app esta diseñada para poder comprar artículos de Apple",
+              body: "Esta app está diseñada para poder comprar artículos de Apple",
               image: Center(
                 child: Lottie.asset('assets/lottie/welcome.json', height: 300.0),
               ),
             ),
             PageViewModel(
               title: "Productos de calidad",
-              body: "Esta app esta diseñada para poder comprar artículos de Apple",
+              body: "Obtén productos de alta calidad directamente desde nuestra app",
               image: Center(
                 child: Lottie.asset('assets/lottie/apple_animation.json', height: 300.0),
               ),
@@ -32,34 +34,25 @@ class OnboardingScreen extends StatelessWidget {
               bodyWidget: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Selecciona el tema que prefieras:"),
-                  SizedBox(height: 20),
+                  const Text("Selecciona el tema que prefieras:"),
+                  const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                          GlobalValues.themeMode.value = 0;
-                          ThemeSettings.lightTheme();
+                          themeProvider.toggleTheme(false); // Tema claro
                         },
-                        child: Text("Claro"),
+                        child: const Text("Claro"),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       ElevatedButton(
                         onPressed: () {
-                          GlobalValues.themeMode.value = 1;
-                          ThemeSettings.darkTheme();
+                          themeProvider.toggleTheme(true); // Tema oscuro
                         },
-                        child: Text("Oscuro"),
+                        child: const Text("Oscuro"),
                       ),
-                      SizedBox(width: 10),
-                      ElevatedButton(
-                        onPressed: () {
-                          GlobalValues.themeMode.value = 2;
-                          ThemeSettings.customTheme();
-                        },
-                        child: Text("Naranja"),
-                      ),
+                     
                     ],
                   ),
                 ],
@@ -70,7 +63,8 @@ class OnboardingScreen extends StatelessWidget {
             ),
             PageViewModel(
               title: "Permisos de la App",
-              body: "Para ofrecerte la mejor experiencia, la app necesita acceso a la cámara y a tu ubicación.",
+              body:
+                  "Para ofrecerte la mejor experiencia, la app necesita acceso a la cámara y a tu ubicación.",
               image: Center(
                 child: Lottie.asset('assets/lottie/permissions_animation.json', height: 200.0),
               ),
@@ -84,15 +78,15 @@ class OnboardingScreen extends StatelessWidget {
                   if (statuses[Permission.camera]!.isGranted &&
                       statuses[Permission.location]!.isGranted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("¡Permisos otorgados!")),
+                      const SnackBar(content: Text("¡Permisos otorgados!")),
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Algunos permisos fueron denegados.")),
+                      const SnackBar(content: Text("Algunos permisos fueron denegados.")),
                     );
                   }
                 },
-                child: Text("Otorgar permisos"),
+                child: const Text("Otorgar permisos"),
               ),
             ),
           ],
