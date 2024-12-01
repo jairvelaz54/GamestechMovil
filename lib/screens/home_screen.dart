@@ -423,7 +423,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 currentAccountPicture: CircleAvatar(
                   backgroundImage: userPhoto != null
                       ? NetworkImage(userPhoto)
-                      : const AssetImage('assets/default_user.png')
+                      : const AssetImage('assets/default_user.jpg')
                           as ImageProvider,
                 ),
                 accountName: Text(userName),
