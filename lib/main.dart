@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gamestech/screens/profile_settings_screen.dart';
+import 'package:gamestech/settings/configuration.dart';
 import 'package:gamestech/settings/theme_setting.dart';
 import 'package:provider/provider.dart';
 import 'package:gamestech/settings/theme_provider.dart';
@@ -10,15 +11,20 @@ import 'package:gamestech/screens/theme_settings_screend.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'firebase_options.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/onboarding_screen.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Supabase.initialize(
+    url: Configuration.mSupaBaseUrl,
+    anonKey: Configuration.msupabaseKey,
+  );
 
   runApp(
     ChangeNotifierProvider(
