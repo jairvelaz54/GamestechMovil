@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gamestech/models/product.dart';
+import 'package:gamestech/screens/historial_screen.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 
 import '../models/product_card.dart';
@@ -229,6 +230,17 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             onTap: () {
               Navigator.pushNamed(context, '/theme');
             },
+          ),
+           ListTile(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const PurchaseHistoryScreen()),
+              );
+            },
+            title: const Text('Historial'),
+            leading: const Icon(Icons.history),
           ),
           ListTile(
             onTap: () async {

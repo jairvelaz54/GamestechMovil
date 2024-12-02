@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:gamestech/models/category_chip.dart';
 import 'package:gamestech/models/product.dart';
 import 'package:gamestech/models/product_card.dart';
+import 'package:gamestech/screens/historial_screen.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -430,7 +431,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           ListTile(
             onTap: () {
-              Navigator.of(context).pushReplacementNamed('/historial');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const PurchaseHistoryScreen()),
+              );
             },
             title: const Text('Historial'),
             leading: const Icon(Icons.history),

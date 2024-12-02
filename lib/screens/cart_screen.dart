@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:gamestech/screens/historial_screen.dart';
 import 'package:gamestech/screens/map_screen.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:flutter_paypal_payment/flutter_paypal_payment.dart';
@@ -361,6 +362,17 @@ class _CartScreenState extends State<CartScreen> {
             onTap: () {
               Navigator.pushNamed(context, '/theme');
             },
+          ),
+           ListTile(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const PurchaseHistoryScreen()),
+              );
+            },
+            title: const Text('Historial'),
+            leading: const Icon(Icons.history),
           ),
           ListTile(
             onTap: () async {
