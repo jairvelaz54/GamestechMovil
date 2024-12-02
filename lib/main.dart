@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:gamestech/firebase/firebase_api.dart';
+import 'package:gamestech/screens/historial_screen.dart';
 import 'package:gamestech/screens/profile_settings_screen.dart';
 import 'package:gamestech/settings/configuration.dart';
 import 'package:gamestech/settings/theme_setting.dart';
@@ -18,6 +20,7 @@ import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/onboarding_screen.dart';
 
+final navigatorKey = GlobalKey<NavigatorState>();
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -25,7 +28,7 @@ Future<void> main() async {
     url: Configuration.mSupaBaseUrl,
     anonKey: Configuration.msupabaseKey,
   );
-
+  await FirebaseApi().initNotification();
   runApp(
     ChangeNotifierProvider(
       create: (_) => ThemeProvider(),
@@ -82,6 +85,7 @@ class MyApp extends StatelessWidget {
               debugShowCheckedModeBanner: false,
               theme: themeData,
               home: onboardingSeen ? LoginScreen() : OnboardingScreen(),
+              navigatorKey: navigatorKey,
               routes: {
                 "/login": (context) => LoginScreen(),
                 "/register": (context) => RegisterScreen(),
@@ -91,7 +95,7 @@ class MyApp extends StatelessWidget {
                 "/favorites": (context) => const FavoritesScreen(),
                 "/theme": (context) => const ThemeSettingsScreen(),
                 "/profile": (context) => const ProfileSettingsScreen(),
-
+                "/historial": (context) => const PurchaseHistoryScreen(),
               },
             );
           },

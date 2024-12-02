@@ -1,7 +1,10 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:gamestech/screens/map_screen.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
+import 'package:flutter_paypal_payment/flutter_paypal_payment.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({Key? key}) : super(key: key);
@@ -38,7 +41,7 @@ class _CartScreenState extends State<CartScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      drawer: _myDrawer(),
+      drawer: myDrawer(),
       appBar: AppBar(
         title: Text(
           'Carrito',
@@ -63,6 +66,19 @@ class _CartScreenState extends State<CartScreen> {
           }
 
           final cartItems = snapshot.data!.docs;
+
+          final total = cartItems.fold<double>(
+            0.0,
+            (sum, item) => sum + (item['precio'] as num).toDouble(),
+          );
+          final items = cartItems.map((item) {
+            return {
+              "name": item['modelo'],
+              "quantity": 1,
+              "price": (item['precio'] as num).toStringAsFixed(2),
+              "currency": "USD",
+            };
+          }).toList();
 
           return Column(
             children: [
@@ -116,7 +132,7 @@ class _CartScreenState extends State<CartScreen> {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    '\$${item['precio'].toStringAsFixed(2)}',
+                                    '\$${(item['precio'] as num).toStringAsFixed(2)}',
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -144,18 +160,15 @@ class _CartScreenState extends State<CartScreen> {
                   },
                 ),
               ),
-              // Botones para pagar
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
                     ElevatedButton(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Pagar en sucursal próximamente"),
-                          ),
-                        );
+                        Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => const MapScreen(),
+                        ));
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
@@ -168,10 +181,10 @@ class _CartScreenState extends State<CartScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: const [
-                          Icon(Icons.store, color: Colors.blue),
+                          Icon(Icons.map, color: Colors.blue),
                           SizedBox(width: 8),
                           Text(
-                            "Pagar en sucursal",
+                            "Ver Sucursal",
                             style: TextStyle(color: Colors.blue),
                           ),
                         ],
@@ -180,14 +193,98 @@ class _CartScreenState extends State<CartScreen> {
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Pagar con Stripe próximamente"),
+                        Navigator.of(context).push(MaterialPageRoute(
+                          builder: (BuildContext context) => PaypalCheckoutView(
+                            sandboxMode: true,
+                            clientId:
+                                "AaC5uvWzdZ5ATnEgvR81r6IJQynfIw2aT7pADFKrSQ55OejISvvrTrycwlio3AXsYb0r6RcEPcKkRj0V",
+                            secretKey:
+                                "EO5Hw6twCWw4U1LgfvxDglArd-AL5gYKORKpfOXq2z3Pgc3fPgTIN_SoRKFDQFwlLXhIAxZs8sYMaFok",
+                            transactions: [
+                              {
+                                "amount": {
+                                  "total": total.toStringAsFixed(2),
+                                  "currency": "USD",
+                                  "details": {
+                                    "subtotal": total.toStringAsFixed(2),
+                                    "shipping": '0',
+                                    "shipping_discount": 0,
+                                  }
+                                },
+                                "description":
+                                    "Pago de productos en el carrito.",
+                                "item_list": {
+                                  "items": items,
+                                },
+                              }
+                            ],
+                            note: "Gracias por tu compra.",
+                            onSuccess: (Map params) async {
+                              log("onSuccess: $params");
+                              try {
+                                final cartRef = _firestore
+                                    .collection('users')
+                                    .doc(_currentUser?.uid)
+                                    .collection('cart');
+                                final cartItems = await cartRef.get();
+                                List<Map<String, dynamic>> purchasedItems = [];
+                                for (var item in cartItems.docs) {
+                                  final productId = item.id;
+                                  final productData = item.data();
+                                  await _firestore
+                                      .collection('iphone')
+                                      .doc(productId)
+                                      .update({'stats.status': 'vendido'});
+                                  purchasedItems.add({
+                                    'productId': productId,
+                                    'modelo': productData['modelo'],
+                                    'marca': productData['marca'],
+                                    'precio': productData['precio'],
+                                  });
+                                }
+                                await _firestore.collection('buys').add({
+                                  'userId': _currentUser?.uid,
+                                  'purchaseDate': Timestamp.now(),
+                                  'items': purchasedItems,
+                                  'total': total,
+                                });
+                                for (var item in cartItems.docs) {
+                                  await cartRef.doc(item.id).delete();
+                                }
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text("Pago exitoso con PayPal")),
+                                );
+                              } catch (e) {
+                                log("Error al procesar la compra: $e");
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text(
+                                          "Ocurrió un error al procesar la compra")),
+                                );
+                              }
+                              Navigator.pop(context);
+                            },
+                            onError: (error) {
+                              log("onError: $error");
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text("Error en el pago con PayPal")),
+                              );
+                              Navigator.pop(context);
+                            },
+                            onCancel: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("Pago cancelado")),
+                              );
+                              Navigator.pop(context);
+                            },
                           ),
-                        );
+                        ));
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
+                        backgroundColor: Colors.blue,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -199,7 +296,7 @@ class _CartScreenState extends State<CartScreen> {
                           Icon(Icons.payment, color: Colors.white),
                           SizedBox(width: 8),
                           Text(
-                            "Pagar con Stripe",
+                            "Pagar con PayPal",
                             style: TextStyle(color: Colors.white),
                           ),
                         ],
@@ -236,7 +333,7 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _myDrawer() {
+  Widget myDrawer() {
     return Drawer(
       child: ListView(
         children: [
@@ -249,24 +346,29 @@ class _CartScreenState extends State<CartScreen> {
             ),
             accountName: Text(_currentUser?.displayName ?? 'Usuario'),
             accountEmail: Text(_currentUser?.email ?? 'Correo no disponible'),
+            decoration: BoxDecoration(
+              color: Colors.blue, // Cambiar el fondo del header a azul
+            ),
           ),
           ListTile(
+            onTap: () => Navigator.pushNamed(context, '/profile'),
             title: const Text('Configuración del perfil'),
-            leading: const Icon(Icons.settings),
-            onTap: () => Navigator.pushNamed(context, '/db'),
+            leading: const Icon(Icons.person),
           ),
           ListTile(
             title: const Text('Configuración de Tema'),
             leading: const Icon(Icons.color_lens),
-            onTap: () => Navigator.pushNamed(context, '/theme'),
+            onTap: () {
+              Navigator.pushNamed(context, '/theme');
+            },
           ),
           ListTile(
-            title: const Text('Salir'),
-            leading: const Icon(Icons.exit_to_app),
             onTap: () async {
-              await _auth.signOut();
+              await FirebaseAuth.instance.signOut();
               Navigator.of(context).pushReplacementNamed('/login');
             },
+            title: const Text('Salir'),
+            leading: const Icon(Icons.exit_to_app),
           ),
         ],
       ),

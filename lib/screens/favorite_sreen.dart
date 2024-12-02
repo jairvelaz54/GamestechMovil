@@ -126,7 +126,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      drawer: _myDrawer(),
+      drawer: myDrawer(),
       appBar: AppBar(
         title: Text('Productos Favoritos',
             style: theme.textTheme.titleLarge
@@ -201,7 +201,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  Widget _myDrawer() {
+   Widget myDrawer() {
     return Drawer(
       child: ListView(
         children: [
@@ -214,24 +214,29 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ),
             accountName: Text(_currentUser?.displayName ?? 'Usuario'),
             accountEmail: Text(_currentUser?.email ?? 'Correo no disponible'),
+            decoration: BoxDecoration(
+              color: Colors.blue, // Cambiar el fondo del header a azul
+            ),
           ),
           ListTile(
+            onTap: () => Navigator.pushNamed(context, '/profile'),
             title: const Text('Configuración del perfil'),
-            leading: const Icon(Icons.settings),
-            onTap: () => Navigator.pushNamed(context, '/db'),
+            leading: const Icon(Icons.person),
           ),
           ListTile(
             title: const Text('Configuración de Tema'),
             leading: const Icon(Icons.color_lens),
-            onTap: () => Navigator.pushNamed(context, '/theme'),
+            onTap: () {
+              Navigator.pushNamed(context, '/theme');
+            },
           ),
           ListTile(
-            title: const Text('Salir'),
-            leading: const Icon(Icons.exit_to_app),
             onTap: () async {
-              await _auth.signOut();
+              await FirebaseAuth.instance.signOut();
               Navigator.of(context).pushReplacementNamed('/login');
             },
+            title: const Text('Salir'),
+            leading: const Icon(Icons.exit_to_app),
           ),
         ],
       ),

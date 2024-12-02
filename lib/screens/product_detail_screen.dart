@@ -21,37 +21,45 @@ class ProductDetail extends StatelessWidget {
     required this.productId,
   }) : super(key: key);
 
-  Future<void> _addToCart(BuildContext context) async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    final cartRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(currentUser?.uid)
-        .collection('cart');
-
-    // Verifica si el producto ya existe en el carrito
-    final existingProduct = await cartRef.doc(productId).get();
-
-    if (existingProduct.exists) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Este producto ya está en el carrito.")),
-      );
-      return;
-    }
-
-    // Agrega el producto al carrito
-    await cartRef.doc(productId).set({
-      'image': image,
-      'modelo': modelo,
-      'marca': marca,
-      'precio': precio,
-      'status': status,
-      'quantity': 1,
-    });
-
+ Future<void> _addToCart(BuildContext context) async {
+  // Verificar si el producto está "vendido"
+  if (status == 'vendido') {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Producto agregado al carrito.")),
+      const SnackBar(content: Text("Este producto ya está vendido y no se puede agregar al carrito.")),
     );
+    return;
   }
+
+  final currentUser = FirebaseAuth.instance.currentUser;
+  final cartRef = FirebaseFirestore.instance
+      .collection('users')
+      .doc(currentUser?.uid)
+      .collection('cart');
+
+  // Verifica si el producto ya existe en el carrito
+  final existingProduct = await cartRef.doc(productId).get();
+
+  if (existingProduct.exists) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Este producto ya está en el carrito.")),
+    );
+    return;
+  }
+
+  // Agrega el producto al carrito
+  await cartRef.doc(productId).set({
+    'image': image,
+    'modelo': modelo,
+    'marca': marca,
+    'precio': precio,
+    'status': status,
+    'quantity': 1,
+  });
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text("Producto agregado al carrito.")),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -150,25 +158,11 @@ class ProductDetail extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      Row(
-                        children: [
-                          const Icon(Icons.star, color: Colors.amber, size: 20),
-                          const SizedBox(width: 4),
-                          Text(
-                            "4.6 (120 Reviews)",
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    "Product Info",
+                    "Informacion del producto",
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -177,7 +171,7 @@ class ProductDetail extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    "A high-quality product designed for modern users. Crafted with precision to deliver the best performance.",
+                    "Descubre el modelo $modelo, diseñado para superar tus expectativas. Este producto, parte de la prestigiosa marca $marca. ¡Transforma tu experiencia diaria con este increíble producto!",
                     style: const TextStyle(
                       fontSize: 16,
                       color: Colors.grey,
